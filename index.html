@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="גלריה" />
+  <link rel="manifest" href="manifest.json" />
+  <title>גלריה</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1c1c28;
+      --border: rgba(255,255,255,0.07);
+      --accent: #c8f55a;
+      --accent2: #5af5c8;
+      --text: #f0f0f5;
+      --muted: #6b6b80;
+      --danger: #ff5a5a;
+      --success: #5af5a0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Heebo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      overflow-x: hidden;
+      direction: rtl;
+    }
+
+    /* grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.5;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+      padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(20px);
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .logo-text {
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text span {
+      color: var(--accent);
+    }
+
+    .install-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'Heebo', sans-serif;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: none;
+    }
+
+    .install-btn.visible { display: block; }
+    .install-btn:hover { color: var(--text); border-color: var(--accent); }
+
+    /* ─── MAIN ─── */
+    main {
+      flex: 1;
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* ─── HERO STATUS ─── */
+    .status-hero {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .status-hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(200,245,90,0.08), transparent);
+      pointer-events: none;
+    }
+
+    .status-icon {
+      font-size: 52px;
+      margin-bottom: 16px;
+      display: block;
+      filter: drop-shadow(0 0 20px rgba(200,245,90,0.4));
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .status-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .status-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 280px;
+      margin: 0 auto;
+    }
+
+    /* ─── PERMISSION CARDS ─── */
+    .perms-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: -12px;
+    }
+
+    .perm-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: all 0.3s;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .perm-card:active { transform: scale(0.98); }
+
+    .perm-card.granted {
+      border-color: rgba(90,245,160,0.25);
+      background: linear-gradient(135deg, var(--surface) 0%, rgba(90,245,160,0.05) 100%);
+    }
+
+    .perm-card.denied {
+      border-color: rgba(255,90,90,0.25);
+      background: linear-gradient(135deg, var(--surface) 0%, rgba(255,90,90,0.05) 100%);
+    }
+
+    .perm-card.pending {
+      border-color: rgba(200,245,90,0.15);
+    }
+
+    .perm-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+      background: var(--surface2);
+      transition: all 0.3s;
+    }
+
+    .perm-card.granted .perm-icon-wrap {
+      background: rgba(90,245,160,0.15);
+    }
+
+    .perm-card.denied .perm-icon-wrap {
+      background: rgba(255,90,90,0.15);
+    }
+
+    .perm-body { flex: 1; min-width: 0; }
+
+    .perm-name {
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 3px;
+    }
+
+    .perm-detail {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .perm-badge {
+      flex-shrink: 0;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-idle {
+      background: var(--surface2);
+      color: var(--muted);
+    }
+
+    .badge-granted {
+      background: rgba(90,245,160,0.2);
+      color: var(--success);
+    }
+
+    .badge-denied {
+      background: rgba(255,90,90,0.2);
+      color: var(--danger);
+    }
+
+    .badge-checking {
+      background: rgba(200,245,90,0.15);
+      color: var(--accent);
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* ─── CTA BUTTON ─── */
+    .cta-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .cta-btn {
+      width: 100%;
+      padding: 18px;
+      border-radius: 16px;
+      border: none;
+      font-family: 'Heebo', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.25s;
+      letter-spacing: -0.3px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0);
+      transition: background 0.2s;
+    }
+
+    .cta-btn:active::after { background: rgba(255,255,255,0.1); }
+
+    .cta-primary {
+      background: var(--accent);
+      color: #0a0a0f;
+    }
+
+    .cta-primary:hover { background: #d6ff6a; transform: translateY(-1px); box-shadow: 0 8px 30px rgba(200,245,90,0.3); }
+    .cta-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .cta-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .cta-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ─── GALLERY GRID ─── */
+    #gallery-section { display: none; flex-direction: column; gap: 16px; }
+    #gallery-section.show { display: flex; }
+
+    .gallery-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .gallery-count {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .gallery-item {
+      aspect-ratio: 1;
+      background: var(--surface2);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s;
+    }
+
+    .gallery-item:hover img { transform: scale(1.05); }
+
+    .gallery-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: var(--muted);
+      animation: shimmer 1.5s ease-in-out infinite;
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--surface) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ─── INFO BOX ─── */
+    .info-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .info-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+    .info-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .info-text strong { color: var(--text); }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 9000;
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      white-space: nowrap;
+      pointer-events: none;
+      backdrop-filter: blur(12px);
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    .loading-spin {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(10,10,15,0.2);
+      border-top-color: #0a0a0f;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">📷</div>
+      <div class="logo-text">גל<span>ריה</span></div>
+    </div>
+    <button class="install-btn" id="installBtn">הוסף למסך</button>
+  </header>
+
+  <main>
+
+    <!-- HERO -->
+    <div class="status-hero" id="heroBox">
+      <span class="status-icon" id="heroIcon">📸</span>
+      <div class="status-title" id="heroTitle">גישה לגלריה</div>
+      <div class="status-desc" id="heroDesc">
+        כדי להציג את התמונות שלך, האפליקציה צריכה את רשותך לגשת לגלריית המכשיר.
+      </div>
+    </div>
+
+    <!-- PERMISSIONS -->
+    <div class="perms-title">הרשאות נדרשות</div>
+
+    <div class="perm-card pending" id="permCamera" onclick="requestPermission('camera')">
+      <div class="perm-icon-wrap">📷</div>
+      <div class="perm-body">
+        <div class="perm-name">מצלמה</div>
+        <div class="perm-detail">לצילום תמונות חדשות ישירות מהאפליקציה</div>
+      </div>
+      <span class="perm-badge badge-idle" id="badgeCamera">לא אושר</span>
+    </div>
+
+    <div class="perm-card pending" id="permGallery" onclick="requestPermission('gallery')">
+      <div class="perm-icon-wrap">🖼️</div>
+      <div class="perm-body">
+        <div class="perm-name">גלריית תמונות</div>
+        <div class="perm-detail">גישה לקריאה של התמונות הקיימות במכשיר</div>
+      </div>
+      <span class="perm-badge badge-idle" id="badgeGallery">לא אושר</span>
+    </div>
+
+    <div class="perm-card pending" id="permMic" onclick="requestPermission('microphone')">
+      <div class="perm-icon-wrap">🎙️</div>
+      <div class="perm-body">
+        <div class="perm-name">מיקרופון</div>
+        <div class="perm-detail">לצילום וידאו עם שמע (אופציונלי)</div>
+      </div>
+      <span class="perm-badge badge-idle" id="badgeMic">לא אושר</span>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-wrap">
+      <button class="cta-btn cta-primary" id="mainBtn" onclick="requestAllPermissions()">
+        אשר גישה לגלריה 📸
+      </button>
+      <button class="cta-btn cta-secondary" onclick="showGalleryDemo()">
+        הצג גלריה לדוגמה
+      </button>
+    </div>
+
+    <!-- INFO -->
+    <div class="info-box">
+      <span class="info-icon">🔒</span>
+      <div class="info-text">
+        <strong>הפרטיות שלך חשובה לנו.</strong><br>
+        הגישה לגלריה משמשת אך ורק בתוך האפליקציה. לא נשמר, לא נשלח ולא נשתף שום מידע עם גורמים חיצוניים.
+      </div>
+    </div>
+
+    <!-- GALLERY DEMO -->
+    <div id="gallery-section">
+      <div class="gallery-header">
+        <div class="perms-title" style="margin-bottom:0">גלריה</div>
+        <div class="gallery-count" id="galleryCount">0 פריטים</div>
+      </div>
+      <div class="gallery-grid" id="galleryGrid"></div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const state = { camera: 'idle', gallery: 'idle', microphone: 'idle' };
+
+  const labels = {
+    idle: ['badge-idle', 'לא אושר'],
+    checking: ['badge-checking', 'בודק...'],
+    granted: ['badge-granted', '✓ אושר'],
+    denied: ['badge-denied', '✗ נדחה'],
+    unsupported: ['badge-idle', 'לא נתמך'],
+  };
+
+  const cardMap = {
+    camera: 'permCamera',
+    gallery: 'permGallery',
+    microphone: 'permMic',
+  };
+
+  const badgeMap = {
+    camera: 'badgeCamera',
+    gallery: 'badgeGallery',
+    microphone: 'badgeMic',
+  };
+
+  function showToast(msg, duration = 2800) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), duration);
+  }
+
+  function updateCard(type, status) {
+    state[type] = status;
+    const card = document.getElementById(cardMap[type]);
+    const badge = document.getElementById(badgeMap[type]);
+    card.className = 'perm-card ' + (status === 'granted' ? 'granted' : status === 'denied' ? 'denied' : 'pending');
+    const [cls, text] = labels[status] || labels.idle;
+    badge.className = 'perm-badge ' + cls;
+    badge.textContent = text;
+  }
+
+  function updateHero() {
+    const all = Object.values(state);
+    const anyGranted = all.some(s => s === 'granted');
+    const allDone = all.every(s => s !== 'idle' && s !== 'checking');
+    const allGranted = all.every(s => s === 'granted');
+
+    const icon = document.getElementById('heroIcon');
+    const title = document.getElementById('heroTitle');
+    const desc = document.getElementById('heroDesc');
+
+    if (allGranted) {
+      icon.textContent = '🎉';
+      title.textContent = 'הכל מוכן!';
+      desc.textContent = 'כל ההרשאות אושרו. הגלריה שלך זמינה לשימוש.';
+      document.getElementById('mainBtn').textContent = '✓ הרשאות אושרו';
+      document.getElementById('mainBtn').disabled = true;
+    } else if (anyGranted) {
+      icon.textContent = '✅';
+      title.textContent = 'חלק מהרשאות אושרו';
+      desc.textContent = 'ניתן לאשר עוד הרשאות בכל עת מהגדרות המכשיר.';
+    }
+  }
+
+  async function requestPermission(type) {
+    updateCard(type, 'checking');
+
+    try {
+      if (type === 'gallery') {
+        // Try File System Access API first
+        if ('showOpenFilePicker' in window) {
+          const files = await window.showOpenFilePicker({
+            multiple: true,
+            types: [{ description: 'תמונות', accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'] } }]
+          });
+          updateCard(type, 'granted');
+          showToast('✅ גישה לגלריה אושרה!');
+          if (files.length > 0) loadSelectedFiles(files);
+        } else {
+          // Fallback: input[type=file]
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/*';
+          input.multiple = true;
+          input.onchange = (e) => {
+            if (e.target.files.length > 0) {
+              updateCard(type, 'granted');
+              showToast('✅ גישה לגלריה אושרה!');
+              loadFilesFromInput(e.target.files);
+            } else {
+              updateCard(type, 'denied');
+              showToast('❌ הגישה לגלריה נדחתה');
+            }
+          };
+          input.oncancel = () => { updateCard(type, 'denied'); showToast('הבחירה בוטלה'); };
+          input.click();
+        }
+      } else if (type === 'camera' || type === 'microphone') {
+        const constraints = {};
+        if (type === 'camera') constraints.video = { facingMode: 'environment' };
+        if (type === 'microphone') constraints.audio = true;
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('unsupported');
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        stream.getTracks().forEach(t => t.stop());
+        updateCard(type, 'granted');
+        showToast(type === 'camera' ? '✅ גישה למצלמה אושרה!' : '✅ גישה למיקרופון אושרה!');
+      }
+    } catch (err) {
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        updateCard(type, 'denied');
+        showToast('❌ הגישה נדחתה על ידי המשתמש');
+      } else if (err.name === 'NotFoundError') {
+        updateCard(type, 'unsupported');
+        showToast('⚠️ חומרה לא נמצאה');
+      } else if (err.message === 'unsupported') {
+        updateCard(type, 'unsupported');
+        showToast('⚠️ לא נתמך בדפדפן זה');
+      } else if (err.name === 'AbortError') {
+        updateCard(type, 'idle');
+      } else {
+        updateCard(type, 'denied');
+        showToast('שגיאה: ' + err.message);
+      }
+    }
+
+    updateHero();
+  }
+
+  async function requestAllPermissions() {
+    const btn = document.getElementById('mainBtn');
+    btn.innerHTML = 'מבקש הרשאות... <span class="loading-spin"></span>';
+    btn.disabled = true;
+
+    // request gallery first (most important)
+    await requestPermission('gallery');
+    await new Promise(r => setTimeout(r, 500));
+    await requestPermission('camera');
+    await new Promise(r => setTimeout(r, 500));
+    await requestPermission('microphone');
+
+    btn.disabled = false;
+    if (Object.values(state).some(s => s === 'granted')) {
+      btn.textContent = '✓ הרשאות טופלו';
+      btn.disabled = true;
+    } else {
+      btn.textContent = 'אשר גישה לגלריה 📸';
+    }
+  }
+
+  async function loadSelectedFiles(fileHandles) {
+    const section = document.getElementById('gallery-section');
+    const grid = document.getElementById('galleryGrid');
+    const count = document.getElementById('galleryCount');
+    section.classList.add('show');
+    grid.innerHTML = '';
+    count.textContent = fileHandles.length + ' פריטים';
+
+    for (const handle of fileHandles) {
+      const file = await handle.getFile();
+      addImageToGrid(file);
+    }
+  }
+
+  function loadFilesFromInput(files) {
+    const section = document.getElementById('gallery-section');
+    const grid = document.getElementById('galleryGrid');
+    const count = document.getElementById('galleryCount');
+    section.classList.add('show');
+    grid.innerHTML = '';
+    count.textContent = files.length + ' פריטים';
+
+    Array.from(files).forEach(file => addImageToGrid(file));
+  }
+
+  function addImageToGrid(file) {
+    const grid = document.getElementById('galleryGrid');
+    const item = document.createElement('div');
+    item.className = 'gallery-item';
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    img.loading = 'lazy';
+    img.onload = () => URL.revokeObjectURL(img.src);
+    item.appendChild(img);
+    item.onclick = () => { window.open(img.src, '_blank'); };
+    grid.appendChild(item);
+  }
+
+  function showGalleryDemo() {
+    const section = document.getElementById('gallery-section');
+    const grid = document.getElementById('galleryGrid');
+    const count = document.getElementById('galleryCount');
+    section.classList.add('show');
+    grid.innerHTML = '';
+    const emojis = ['🌅','🌊','🌿','🦋','🌸','🎨','🌙','⭐','🏔️','🌺','🦊','🌈'];
+    count.textContent = emojis.length + ' פריטים (דוגמה)';
+    emojis.forEach(e => {
+      const item = document.createElement('div');
+      item.className = 'gallery-item';
+      const ph = document.createElement('div');
+      ph.className = 'gallery-placeholder';
+      ph.textContent = e;
+      item.appendChild(ph);
+      grid.appendChild(item);
+    });
+    showToast('מוצגת גלריה לדוגמה');
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ─── PWA INSTALL ───
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('installBtn').classList.add('visible');
+  });
+
+  document.getElementById('installBtn').addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('installBtn').classList.remove('visible');
+    showToast(outcome === 'accepted' ? '✅ האפליקציה הותקנה!' : 'ההתקנה בוטלה');
+  });
+
+  // ─── CHECK EXISTING PERMISSIONS ───
+  async function checkExistingPermissions() {
+    if (!navigator.permissions) return;
+    const perms = [
+      { name: 'camera', key: 'camera' },
+      { name: 'microphone', key: 'microphone' },
+    ];
+    for (const p of perms) {
+      try {
+        const result = await navigator.permissions.query({ name: p.name });
+        if (result.state === 'granted') updateCard(p.key, 'granted');
+        if (result.state === 'denied') updateCard(p.key, 'denied');
+      } catch (_) {}
+    }
+    updateHero();
+  }
+
+  checkExistingPermissions();
+</script>
+
+<!-- SERVICE WORKER REGISTRATION -->
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+</script>
+</body>
+</html>
